@@ -24,7 +24,7 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           client-secret: ${{ secrets.CLIENT_SECRET }}
           tenant-id: ${{ secrets.TENANT_ID }}
-          solution-name: CoreSolution
+          solution-name: ALMCORE
           strategy: Revision
 
       # Export unmanaged solution from ALM-CORE
@@ -35,7 +35,7 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           client-secret: ${{ secrets.CLIENT_SECRET }}
           tenant-id: ${{ secrets.TENANT_ID }}
-          solution-name: CoreSolution
+          solution-name: ALMCORE
           managed: false
           solution-output-file: ./Core_unmanaged.zip
 
