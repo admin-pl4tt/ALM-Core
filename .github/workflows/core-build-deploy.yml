@@ -1,29 +1,33 @@
-name: CORE - Build and Deploy
+name: CORE - Build (Deploy Optional)
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy after build? (true/false)"
+        required: true
+        default: "false"
 
 jobs:
-  build-deploy:
+  core-build:
     runs-on: windows-latest
 
     steps:
-      # Checkout repository
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Install Power Platform CLI
       - name: Install Power Platform CLI
         uses: microsoft/powerplatform-actions/actions-install@v1
 
-      # Create working folders
       - name: Create working folders
         run: |
           mkdir out
           mkdir src
 
-      # Export unmanaged solution from CORE (for source control)
-      - name: Export Unmanaged
+      # ----------------------------
+      # Export Unmanaged (Source Control)
+      # ----------------------------
+      - name: Export CORE Unmanaged
         uses: microsoft/powerplatform-actions/export-solution@v1
         with:
           environment-url: ${{ secrets.CORE_ENV_URL }}
@@ -35,16 +39,25 @@ jobs:
           solution-output-file: ALMCORE_unmanaged.zip
           working-directory: out
 
-      # Unpack unmanaged solution to source folder
-      - name: Unpack Solution
+      - name: Unpack CORE
         uses: microsoft/powerplatform-actions/unpack-solution@v1
         with:
           solution-file: out/ALMCORE_unmanaged.zip
           solution-folder: src/ALMCORE
           solution-type: Unmanaged
 
-      # Export managed solution directly from environment
-      - name: Export Managed
+      - name: Commit Unpacked CORE
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add src
+          git commit -m "Update ALMCORE source" || echo "No changes detected"
+          git push
+
+      # ----------------------------
+      # Export Managed (Artifact)
+      # ----------------------------
+      - name: Export CORE Managed
         uses: microsoft/powerplatform-actions/export-solution@v1
         with:
           environment-url: ${{ secrets.CORE_ENV_URL }}
@@ -56,8 +69,12 @@ jobs:
           solution-output-file: ALMCORE_managed.zip
           working-directory: out
 
-      # Deploy managed CORE to DEV1
-      - name: Deploy to DEV1
+      # ----------------------------
+      # Optional Deployment Section
+      # ----------------------------
+
+      - name: Deploy CORE to DEV1
+        if: ${{ github.event.inputs.deploy == 'true' }}
         uses: microsoft/powerplatform-actions/import-solution@v1
         with:
           environment-url: ${{ secrets.DEV1_ENV_URL }}
@@ -68,8 +85,8 @@ jobs:
           publish-changes: true
           force-overwrite: true
 
-      # Deploy managed CORE to DEV2
-      - name: Deploy to DEV2
+      - name: Deploy CORE to DEV2
+        if: ${{ github.event.inputs.deploy == 'true' }}
         uses: microsoft/powerplatform-actions/import-solution@v1
         with:
           environment-url: ${{ secrets.DEV2_ENV_URL }}
@@ -80,8 +97,8 @@ jobs:
           publish-changes: true
           force-overwrite: true
 
-      # Deploy managed CORE to TEST
-      - name: Deploy to TEST
+      - name: Deploy CORE to TEST
+        if: ${{ github.event.inputs.deploy == 'true' }}
         uses: microsoft/powerplatform-actions/import-solution@v1
         with:
           environment-url: ${{ secrets.TEST_ENV_URL }}
