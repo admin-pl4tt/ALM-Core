@@ -47,12 +47,11 @@ jobs:
           app-id: ${{ env.APP_ID }}
           client-secret: ${{ env.CLIENT_SECRET }}
           tenant-id: ${{ env.TENANT_ID }}
-
-      - name: Create working folders
+          
+      - name: Create working folder
         run: |
-          mkdir out
-          mkdir src
-
+          if (!(Test-Path out)) { New-Item -ItemType Directory -Path out }
+        shell: pwsh
       # ----------------------------
       # Auto Version Bump
       # ----------------------------
