@@ -57,7 +57,7 @@ jobs:
       # Auto Version Bump
       # ----------------------------
       - name: Set Solution Version
-        uses: microsoft/powerplatform-actions/set-solution-version@v1
+        uses: microsoft/powerplatform-actions/set-online-solution-version@v1
         with:
           environment-url: ${{ env.CORE_ENV_URL }}
           app-id: ${{ env.APP_ID }}
