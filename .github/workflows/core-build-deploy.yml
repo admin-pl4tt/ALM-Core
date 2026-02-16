@@ -19,7 +19,7 @@ env:
   APP_ID: ${{ secrets.APP_ID }}
   CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
   TENANT_ID: ${{ secrets.TENANT_ID }}
-  SOLUTION_NAME: ALMCORE   # Ensure this is the UNIQUE NAME
+  SOLUTION_NAME: ALMCORE   # MUST be the UNIQUE NAME, not display name
 
 jobs:
   core-build:
@@ -27,7 +27,7 @@ jobs:
 
     steps:
       # ----------------------------
-      # Checkout
+      # Checkout (with push support)
       # ----------------------------
       - name: Checkout
         uses: actions/checkout@v3
@@ -47,13 +47,17 @@ jobs:
           app-id: ${{ env.APP_ID }}
           client-secret: ${{ env.CLIENT_SECRET }}
           tenant-id: ${{ env.TENANT_ID }}
-          
+
+      # ----------------------------
+      # Create export folder safely
+      # ----------------------------
       - name: Create working folder
         run: |
           if (!(Test-Path out)) { New-Item -ItemType Directory -Path out }
         shell: pwsh
+
       # ----------------------------
-      # Auto Version Bump
+      # Auto Version Bump (Correct Syntax)
       # ----------------------------
       - name: Set Solution Version
         uses: microsoft/powerplatform-actions/set-online-solution-version@v1
@@ -62,8 +66,8 @@ jobs:
           app-id: ${{ env.APP_ID }}
           client-secret: ${{ env.CLIENT_SECRET }}
           tenant-id: ${{ env.TENANT_ID }}
-          solution-name: ${{ env.SOLUTION_NAME }}
-          solution-version-number: 1.0.${{ github.run_number }}
+          name: ${{ env.SOLUTION_NAME }}
+          version: 1.0.${{ github.run_number }}
 
       # ----------------------------
       # Export Unmanaged (Source Control)
@@ -88,12 +92,15 @@ jobs:
           solution-type: Unmanaged
           overwrite-files: true
 
+      # ----------------------------
+      # Commit to Source Control
+      # ----------------------------
       - name: Commit Unpacked CORE
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add src
-          git commit -m "Update ALMCORE source" || echo "No changes detected"
+          git commit -m "Update ALMCORE source from CORE environment" || echo "No changes detected"
           git push
 
       # ----------------------------
@@ -112,7 +119,7 @@ jobs:
           working-directory: out
 
       # ----------------------------
-      # Optional Deployment
+      # Optional Deployment Section
       # ----------------------------
       - name: Deploy CORE to DEV1
         if: ${{ github.event.inputs.deploy == 'true' }}
